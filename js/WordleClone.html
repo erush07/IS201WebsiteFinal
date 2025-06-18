@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>My Mini Wordle Clone</title>
+  <style>
+
+    a {
+        color: rgb(146, 145, 145);
+        font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+        text-align: end;
+        float: left;
+        padding-left: 10px;
+    }
+
+    #keyboard {
+        padding-top: 40px;
+        margin-top: 30px;
+        display: grid;
+        grid-template-columns: repeat(10, 1fr);
+        gap: 5px;
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .key {
+        padding: 10px;
+        font-size: 1em;
+        background-color: #828f93;
+        border: none;
+        border-radius: 5px;
+        color: white;
+        cursor: pointer;
+        font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    }
+
+    .key:hover {
+        background-color: #565758;
+    }
+
+
+    body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        background: linear-gradient(#d8f2f8, #9eb9bf, #70888c);
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        color: white;
+    }
+
+    h1 {
+        padding-top: 100px;
+        font-size: xx-large;
+        margin-top: 20px;
+        font-weight: bolder;
+        font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    }
+
+    #board {
+        display: grid;
+        grid-template-columns: repeat(5, 60px);
+        gap: 5px;
+        justify-content: center;
+        margin-top: 30px;
+    }
+
+    .tile {
+        width: 60px;
+        height: 60px;
+        border: 2px solid #3a3a3c;
+        font-size: 2em;
+        text-transform: uppercase;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #121213;
+        color: white;
+        font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    }
+
+    .green { background-color: #93d18e; }
+    .yellow { background-color: #f4e5a0; }
+    .gray { background-color: #8d8c8c; }
+
+    #guess-input {
+        margin-top: 20px;
+    }
+
+    input[type="text"] {
+        font-size: 1.2em;
+        padding: 5px;
+        width: 100px;
+        text-transform: uppercase;
+        font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    }
+
+    button {
+        padding: 10px 20px;
+        font-size: 1em;
+        margin-left: 10px;
+        font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+        font-weight: bold;
+    }
+
+    #message {
+        padding-top: 10px;
+        margin-top: 20px;
+        font-weight: bold;
+        font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+        padding-bottom: 10px;
+    }
+
+  </style>
+</head>
+<body>
+
+    <div>
+        <a href="scratch.html">Scratch</a>
+        <a href="index.html">Main Page</a>
+    </div>
+
+    <br><br>
+
+    <h1>My IS 201 Wordle Clone</h1>
+
+    <p>- This wordle is Sky: Children of the Light Themed -</p>
+
+    <div id="board"></div>
+
+    <div id="guess-input">
+        <input type="text" id="guess" maxlength="5">
+        <button onclick="submitGuess()"> Guess! </button>
+    </div>
+
+    <div id="keyboard"></div>
+
+    <div id="message"></div>
+
+    <script>
+        const words = ["LIGHT", "CLOUD", "WINGS", "GRACE", "SPARK",
+            "DREAM", "SKIES", "HEART", "CHILD", "MANTA",
+            "GUIDE", "REALM", "CAPE", "BUILD", "BOOST",
+            "FLAME", "SKATE", "STARS", "QUEST", "SHARD", "SKIES", "SOARS"]
+        const wordToGuess = words[Math.floor(Math.random() * words.length)]
+        let attempts = 0;
+        const maxAttempts = 6;
+
+        function createRow(guess, result) {
+        const board = document.getElementById("board");
+
+        for (let i = 0; i < 5; i++) {
+            const tile = document.createElement("div");
+            tile.classList.add("tile");
+
+            tile.textContent = guess[i];
+
+            if (result[i] === "green") tile.classList.add("green");
+            else if (result[i] === "yellow") tile.classList.add("yellow");
+            else tile.classList.add("gray");
+
+            board.appendChild(tile);
+        }
+        }
+
+            function evaluateGuess(guess) {
+            const result = Array(5).fill("gray");
+            const wordArray = wordToGuess.split("");
+
+            // First pass: correct letter & position
+            for (let i = 0; i < 5; i++) {
+                if (guess[i] === wordArray[i]) {
+                result[i] = "green";
+                wordArray[i] = null; // Mark letter as used
+                }
+            }
+
+            // Second pass: correct letter, wrong position
+            for (let i = 0; i < 5; i++) {
+                if (result[i] === "gray" && wordArray.includes(guess[i])) {
+                result[i] = "yellow";
+                wordArray[wordArray.indexOf(guess[i])] = null;
+                }
+            }
+
+            return result;
+            }
+
+            function submitGuess() {
+            const input = document.getElementById("guess");
+            const guess = input.value.toUpperCase();
+
+            if (guess.length !== 5) {
+                alert("Please enter a 5-letter word.");
+                return;
+            }
+
+            const result = evaluateGuess(guess);
+            createRow(guess, result);
+
+            attempts++;
+            input.value = "";
+
+            if (guess === wordToGuess) {
+                document.getElementById("message").textContent = "🎉 Good Job!! You guessed it!";
+                document.getElementById("guess-input").style.display = "none";
+            } else if (attempts >= maxAttempts) {
+                document.getElementById("message").textContent = "❌ Oh no!! You're out of attempts! The word was " + wordToGuess;
+                document.getElementById("guess-input").style.display = "none";
+            }
+            }
+        
+        const keyboardLayout = [
+        ..."QWERTYUIOP",
+        ..."ASDFGHJKL",
+        "ENTER", ..."ZXCVBNM", "←"
+        ];
+
+        function createKeyboard() {
+        const kb = document.getElementById("keyboard");
+        keyboardLayout.forEach(key => {
+            const btn = document.createElement("button");
+            btn.textContent = key;
+            btn.classList.add("key");
+            btn.onclick = () => handleKeyPress(key);
+            kb.appendChild(btn);
+        });
+        }
+
+        function handleKeyPress(key) {
+        const input = document.getElementById("guess");
+
+        if (key === "ENTER") {
+            submitGuess();
+        } else if (key === "←") {
+            input.value = input.value.slice(0, -1);
+        } else if (input.value.length < 5) {
+            input.value += key;
+        }
+        }
+
+        createKeyboard();
+
+    </script>
+
+</body>
+</html>

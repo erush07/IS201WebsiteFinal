@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Eva Rushforth - My IS 201 Wordle Clone</title>
+  <style>
+
+    body {
+        font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+        text-align: center;
+        background: linear-gradient(#c5e7ee, #567d86);
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        color: white;
+    }
+
+    #keyboard {
+        margin-top: 30px;
+        display: grid;
+        grid-template-columns: repeat(10, 1fr);
+        gap: 5px;
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
+        margin-bottom: 225px;
+    }
+
+    .key {
+        padding: 10px;
+        font-size: 1em;
+        background-color: #7e8081;
+        border: none;
+        border-radius: 5px;
+        color: white;
+        cursor: pointer;
+    }
+
+    .key:hover {
+        background-color: #565758;
+    }
+
+    #board {
+      display: grid;
+      grid-template-columns: repeat(5, 60px);
+      gap: 5px;
+      justify-content: center;
+      margin-top: 30px;
+    }
+
+    .tile {
+      width: 60px;
+      height: 60px;
+      border: 2px solid #3a3a3c;
+      font-size: 2em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #121213;
+      color: white;
+    }
+
+    .green { background-color: #8bda83; }
+    .yellow { background-color: #eee09f; }
+    .gray { background-color: #848484; }
+
+    #guess-input {
+      margin-top: 20px;
+    }
+
+    input[type="text"] {
+      font-size: 1.2em;
+      padding: 5px;
+      width: 100px;
+      text-transform: uppercase;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 1em;
+      margin-left: 10px;
+    }
+
+    #message {
+      margin-top: 20px;
+      font-weight: bold;
+    }
+
+    a {
+        padding-top: 15px;
+        font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+        color: rgb(255, 255, 255);
+        font-weight: bold;
+        z-index: 1;
+        font-size: medium;
+    }
+
+    .scratch {
+        float: left;
+         padding-left: 10px;
+    }
+    
+    .main {
+        float: right;
+        padding-right: 10px;
+    }
+
+    .h1 {
+        margin-top: 200px;
+        position: relative;
+        z-index: 2;
+    }
+
+  </style>
+</head>
+<body>
+
+    <div class="h1">
+        <h1>My IS 201 Wordle Clone</h1>
+    </div>
+
+    <div id="board"></div>
+
+    <div id="guess-input">
+        <input type="text" id="guess" maxlength="5">
+        <button onclick="submitGuess()">Guess</button>
+    </div>
+    <br>
+    <br>
+    <div id="keyboard"></div>
+
+    <div id="message"></div>
+
+    <script>
+        const words = ["LIGHT", "DREAM", "SHINE", "WINGS", "SKIES", "CLOUD", "HEART", "SPARK", "NIGHT", "GRACE"];
+        const wordToGuess = words[Math.floor(Math.random() * words.length)];
+
+        let attempts = 0;
+        const maxAttempts = 6;
+
+        function createRow(guess, result) {
+        const board = document.getElementById("board");
+
+        for (let i = 0; i < 5; i++) {
+            const tile = document.createElement("div");
+            tile.classList.add("tile");
+
+            tile.textContent = guess[i];
+
+            if (result[i] === "green") tile.classList.add("green");
+            else if (result[i] === "yellow") tile.classList.add("yellow");
+            else tile.classList.add("gray");
+
+            board.appendChild(tile);
+        }
+        }
+
+        function evaluateGuess(guess) {
+        const result = Array(5).fill("gray");
+        const wordArray = wordToGuess.split("");
+
+        // First pass: correct letter & position
+        for (let i = 0; i < 5; i++) {
+            if (guess[i] === wordArray[i]) {
+            result[i] = "green";
+            wordArray[i] = null; // Mark letter as used
+            }
+        }
+
+        // Second pass: correct letter, wrong position
+        for (let i = 0; i < 5; i++) {
+            if (result[i] === "gray" && wordArray.includes(guess[i])) {
+            result[i] = "yellow";
+            wordArray[wordArray.indexOf(guess[i])] = null;
+            }
+        }
+
+        return result;
+        }
+
+        function submitGuess() {
+        const input = document.getElementById("guess");
+        const guess = input.value.toUpperCase();
+
+        if (guess.length !== 5) {
+            alert("Please enter a 5-letter word.");
+            return;
+        }
+
+        const result = evaluateGuess(guess);
+        createRow(guess, result);
+
+        attempts++;
+        input.value = "";
+
+        if (guess === wordToGuess) {
+            document.getElementById("message").textContent = "🎉 Great Job!! You guessed it!";
+            document.getElementById("guess-input").style.display = "none";
+        } else if (attempts >= maxAttempts) {
+            document.getElementById("message").textContent = "Oh no! You're Out of attempts! The word was " + wordToGuess;
+            document.getElementById("guess-input").style.display = "none";
+        }
+        }
+
+        const keyboardLayout = [
+            ..."QWERTYUIOP",
+            ..."ASDFGHJKL",
+            "ENTER", ..."ZXCVBNM", "←"
+        ];
+
+        function createKeyboard() {
+        const kb = document.getElementById("keyboard");
+        keyboardLayout.forEach(key => {
+            const btn = document.createElement("button");
+            btn.textContent = key;
+            btn.classList.add("key");
+            btn.onclick = () => handleKeyPress(key);
+            kb.appendChild(btn);
+        });
+        }
+
+        function handleKeyPress(key) {
+        const input = document.getElementById("guess");
+
+        if (key === "ENTER") {
+            submitGuess();
+        } else if (key === "←") {
+            input.value = input.value.slice(0, -1);
+        } else if (input.value.length < 5) {
+            input.value += key;
+        }
+        }
+
+        createKeyboard();
+
+    </script>
+
+    <a class="scratch" href="scratch.html">Scratch</a>
+    <a class="main" href="index.html">Main Pages</a>
+
+</body>
+</html>
